@@ -4,8 +4,14 @@ const displayState = {
   xDensity: 3,
   yDensity: 3,
 };
+const displayPixels = new Array(displayState.height)
+  .fill(0)
+  .map((e) => new Array(displayState.width).fill(0));
+
 updateCanvas();
 randomize();
+
+function setPixelsByte(x, y, byte) {}
 
 function updateCanvas() {
   const canvas = document.getElementById("monitor");
@@ -19,7 +25,7 @@ function randomize() {
 
   const width = canvas.width / displayState.xDensity;
   const height = canvas.height / displayState.yDensity;
-  console.log(width + " " + height);
+  // console.log(width + " " + height);
 
   for (let i = 0; i < width * height; i++) {
     const x = i % width;

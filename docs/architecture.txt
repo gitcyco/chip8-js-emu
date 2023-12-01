@@ -46,7 +46,7 @@ Instructions are 2 bytes, 16-bits
   ANNN
   A is the instruction
   XYN -> are variable
-
+    A: The primary instruction. This is the first 4 bits.
     X: The second nibble. Used to look up one of the 16 registers (VX) from V0 through VF.
     Y: The third nibble. Also used to look up one of the 16 registers (VY) from V0 through VF.
     N: The fourth nibble. A 4-bit number.
