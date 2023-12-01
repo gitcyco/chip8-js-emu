@@ -9,11 +9,14 @@
 <body>
 
   <div id="main-window">
+    <div id="display-header">
+      <input type="text" id="height" class="size-input" placeholder="width">
+      <input type="text" id="width" class="size-input" placeholder="height">
+      <input type="text" id="pixel-density" class="size-input" placeholder="density">
+      <button id="update-display-size">Use</button>
+    </div>
     <div id="display">
-      <canvas id="monitor" width="640" height="320">
-        <!-- <canvas id="mycanvas" width="640", height="320"></canvas> -->
-
-      </canvas>
+      <canvas id="monitor" width="640" height="320"></canvas>
     </div>
 
   </div>
