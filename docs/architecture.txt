@@ -1,0 +1,56 @@
+Memory: 4096 bytes (12 bit addressing)
+  0x0000 -> 0x1000
+  0x0000 -> 0x01FF (legacy reserved 512 bytes)
+    This can be used to store fonts, sprites, etc.
+
+Registers:
+  16x 8-bit data registers:
+    V0-VE -> general purpose registers
+    VF    -> carry flag register
+    PC    -> program counter, points to current instruction
+    I     -> Index register, points to memory locations
+
+
+Stack:
+  48 byte stack at top of memory
+    Size is legacy, can be larger
+    Each entry is 16 bits (2 bytes) for 12-bit addressing
+
+Timers: 8-bit 60hz count down to 0
+  DT: Delay timer
+  ST: Sound timer (play sound when non-zero)
+
+Input: hex input
+  16 keys: 0 -> F
+
+Display: Monochrome
+  64x32 pixels for legacy
+    Can be configurable
+
+Sprites:
+  8-bit wide, 1->15 pixels height (1 -> 15 bytes)
+  each bit is either 0 (transparent) or 1 (flip state)
+
+Sound: (on/off only)
+  ST timer is used, play tone when non-zero
+
+
+INSTRUCTION SET:
+
+Instructions are 2 bytes, 16-bits
+
+  Each instruction is divided into 4 nibbles, or 4x 4-bit values.
+
+  AXYN is A.X.Y.N.
+  AXNN
+  ANNN
+  A is the instruction
+  XYN -> are variable
+
+    X: The second nibble. Used to look up one of the 16 registers (VX) from V0 through VF.
+    Y: The third nibble. Also used to look up one of the 16 registers (VY) from V0 through VF.
+    N: The fourth nibble. A 4-bit number.
+    NN: The second byte (third and fourth nibbles). An 8-bit immediate number.
+    NNN: The second, third and fourth nibbles. A 12-bit immediate memory address.
+
+
