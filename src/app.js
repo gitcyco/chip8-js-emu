@@ -37,6 +37,7 @@ displayState.updateCanvas();
 displayState.paint();
 
 randomize();
+
 // setPixelsByte(62, 10, 202);
 // displayState.paint();
 
