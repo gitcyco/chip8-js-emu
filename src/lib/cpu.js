@@ -1,3 +1,5 @@
+const DELAY_TIMER_INTERVAL = 15;
+
 class CPU {
   constructor(display, keyboard, ramsize, stacksize) {
     console.log("new cpu");
@@ -6,10 +8,25 @@ class CPU {
     this.byteInterface = new Int8Array(this.ram);
     this.stack = new Stack(this.ram, stacksize);
     this.registers = new Array(16).fill(0);
-    this.delayTimer = 0;
-    this.soundtimer = 0;
-    this.indexReg = 0;
-    this.programCounter = 0;
+    this._delayTimer = 0;
+    this._soundtimer = 0;
+    this._indexReg = 0;
+    this._programCounter = 0;
+    this._dtClearInterval = null;
+  }
+  set dt(val) {
+    if (this._dtClearInterval) clearInterval(this._dtClearInterval);
+    this._delayTimer = val;
+    this._dtClearInterval = setInterval(
+      function () {
+        if (this._delayTimer > 0) this._delayTimer--;
+        else clearInterval(this._dtClearInterval);
+      }.bind(this),
+      DELAY_TIMER_INTERVAL
+    );
+  }
+  get dt() {
+    return this._delayTimer;
   }
 }
 
