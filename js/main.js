@@ -49,9 +49,8 @@ function setPixelsByte(x, y, byte) {
     i++, mask >>= 1
   ) {
     if (byte & mask) {
-      displayState.displayPixels[y][x + i] =
-        displayState.displayPixels[y][x + i] ^ 1;
-      console.log("one", x + i, y);
+      displayState.displayPixels[y][x + i] ^= 1;
+      console.log("flip", x + i, y);
     }
   }
 }
