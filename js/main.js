@@ -37,13 +37,12 @@ displayState.updateCanvas();
 displayState.paint();
 
 // randomize();
-// setPixelsByte(20, 10, 202);
+// setPixelsByte(62, 10, 202);
 // displayState.paint();
 
 function setPixelsByte(x, y, byte) {
   x = x % displayState.width;
   y = y % displayState.height;
-
   for (
     let i = 0, mask = 0x80;
     i < 8 && x + i < displayState.width;
@@ -52,8 +51,8 @@ function setPixelsByte(x, y, byte) {
     if (byte & mask) {
       displayState.displayPixels[y][x + i] =
         displayState.displayPixels[y][x + i] ^ 1;
-      console.log("one");
-    } else console.log("zero");
+      console.log("one", x + i, y);
+    }
   }
 }
 
@@ -65,19 +64,3 @@ function randomize() {
   }
   displayState.paint();
 }
-
-// function randomize() {
-//   const canvas = document.getElementById("monitor");
-//   const ctx = canvas.getContext("2d");
-//
-//   const width = canvas.width / displayState.xDensity;
-//   const height = canvas.height / displayState.yDensity;
-//   // console.log(width + " " + height);
-//
-//   for (let i = 0; i < width * height; i++) {
-//     const x = i % width;
-//     const y = Math.floor(i / width);
-//     const bit = Math.floor(Math.random() * 2);
-//     displayState.setPixel(ctx, x, y, bit);
-//   }
-// }
