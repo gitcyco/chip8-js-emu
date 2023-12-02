@@ -36,7 +36,7 @@ const displayState = {
 displayState.updateCanvas();
 displayState.paint();
 
-// randomize();
+randomize();
 // setPixelsByte(62, 10, 202);
 // displayState.paint();
 
