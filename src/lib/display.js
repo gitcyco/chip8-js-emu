@@ -9,11 +9,14 @@ class Display {
     this.yDensity = yDensity;
     this.displayPixels = [[]];
   }
-  updateCanvas() {
-    throw new Error("Must provide an 'updateCanvas' method for this display");
+  reset() {
+    throw new Error("Must provide an 'reset' method for this display");
   }
   setPixel() {
     throw new Error("Must provide a 'setPixel' method for this display");
+  }
+  setPixelsByte() {
+    throw new Error("Must provide a 'setPixelsByte' method for this display");
   }
   paint() {
     throw new Error("Must provide a 'paint' method for this display");
