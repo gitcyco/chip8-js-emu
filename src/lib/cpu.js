@@ -1,5 +1,5 @@
 class CPU {
-  constructor() {
+  constructor(display, keyboard, ramsize, stacksize) {
     console.log("new cpu");
   }
 }
