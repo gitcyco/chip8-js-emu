@@ -1,4 +1,5 @@
 const DELAY_TIMER_INTERVAL = 15;
+const SOUND_TIMER_INTERVAL = 15;
 
 class CPU {
   constructor(display, keyboard, ramsize, stacksize) {
@@ -13,6 +14,7 @@ class CPU {
     this._indexReg = 0;
     this._programCounter = 0;
     this._dtClearInterval = null;
+    this._stClearInterval = null;
   }
   set delayTimer(val) {
     if (this._dtClearInterval) clearInterval(this._dtClearInterval);
@@ -30,6 +32,23 @@ class CPU {
   }
   get delayTimer() {
     return this._delayTimer;
+  }
+  set soundTimer(val) {
+    if (this._stClearInterval) clearInterval(this._stClearInterval);
+    this._soundTimer = val;
+    this._stClearInterval = setInterval(
+      function () {
+        if (this._soundTimer > 0) this._soundTimer--;
+        else {
+          clearInterval(this._stClearInterval);
+          this._soundTimer = 0;
+        }
+      }.bind(this),
+      SOUND_TIMER_INTERVAL
+    );
+  }
+  get soundTimer() {
+    return this._soundTimer;
   }
 }
 
