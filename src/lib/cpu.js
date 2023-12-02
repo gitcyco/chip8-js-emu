@@ -14,18 +14,21 @@ class CPU {
     this._programCounter = 0;
     this._dtClearInterval = null;
   }
-  set dt(val) {
+  set delayTimer(val) {
     if (this._dtClearInterval) clearInterval(this._dtClearInterval);
     this._delayTimer = val;
     this._dtClearInterval = setInterval(
       function () {
         if (this._delayTimer > 0) this._delayTimer--;
-        else clearInterval(this._dtClearInterval);
+        else {
+          clearInterval(this._dtClearInterval);
+          this._delayTimer = 0;
+        }
       }.bind(this),
       DELAY_TIMER_INTERVAL
     );
   }
-  get dt() {
+  get delayTimer() {
     return this._delayTimer;
   }
 }
