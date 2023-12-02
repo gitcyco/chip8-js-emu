@@ -5,6 +5,11 @@ class CPU {
     this.wordInterface = new Int16Array(this.ram);
     this.byteInterface = new Int8Array(this.ram);
     this.stack = new Stack(this.ram, stacksize);
+    this.registers = new Array(16).fill(0);
+    this.delayTimer = 0;
+    this.soundtimer = 0;
+    this.indexReg = 0;
+    this.programCounter = 0;
   }
 }
 
