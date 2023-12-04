@@ -1,13 +1,18 @@
 const DELAY_TIMER_INTERVAL = 15;
 const SOUND_TIMER_INTERVAL = 15;
 
+// Some programs will expect that the first byte of the loaded program
+// begin at address 0x200 (512) due to historical reasons.
+// Changing this could break things, so we will just load the font data into low memory.
+const LOAD_ADDRESS = 0x200;
+
 class CPU {
   constructor(display, keyboard, ramsize, stacksize) {
     console.log("new cpu");
-    this.ram = new ArrayBuffer(ramsize);
-    this.wordInterface = new Int16Array(this.ram);
-    this.byteInterface = new Int8Array(this.ram);
-    this.stack = new Stack(this.ram, stacksize);
+    this._ram = new ArrayBuffer(ramsize);
+    this.wordInterface = new Int16Array(this._ram);
+    this.byteInterface = new Int8Array(this._ram);
+    this.stack = new Stack(this._ram, stacksize);
     this.registers = new Array(16).fill(0);
     this._delayTimer = 0;
     this._soundtimer = 0;
