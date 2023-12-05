@@ -14,6 +14,7 @@ class CPU {
     this.keyboard = keyboard;
     this._ramsize = ramsize;
     this._stacksize = stacksize;
+    this.legacy8XY = false;
     this.initialize();
     // this._ram = new ArrayBuffer(this._ramsize);
     // this.wordInterface = new Uint16Array(this._ram);
@@ -135,6 +136,91 @@ class CPU {
         }
         break;
       case "8":
+        {
+          const type = instruction[3];
+          switch (type) {
+            case "0":
+              {
+                // 8XY0: Vx = Vy  Sets VX to the value of VY.
+                const regX = parseInt(instruction[1], 16);
+                const regY = parseInt(instruction[2], 16);
+                this.registers[regX] = this.registers[regY];
+              }
+              break;
+            case "1":
+              {
+                // 8XY1: Vx |= Vy  Sets VX to VX or VY. (bitwise OR operation)
+                const regX = parseInt(instruction[1], 16);
+                const regY = parseInt(instruction[2], 16);
+                this.registers[regX] |= this.registers[regY];
+              }
+              break;
+            case "2":
+              {
+                // 8XY2: Vx &= Vy  Sets VX to VX and VY. (bitwise AND operation)
+                const regX = parseInt(instruction[1], 16);
+                const regY = parseInt(instruction[2], 16);
+                this.registers[regX] &= this.registers[regY];
+              }
+              break;
+            case "3":
+              {
+                // 8XY3: Vx ^= Vy  Sets VX to VX xor VY. (bitwise XOR operation)
+                const regX = parseInt(instruction[1], 16);
+                const regY = parseInt(instruction[2], 16);
+                this.registers[regX] ^= this.registers[regY];
+              }
+              break;
+            case "4":
+              {
+                // 8XY4: Vx + Vy  Sets VX to VX + VY. Overflow of 8 bit value (>255) sets VF to 1, otherwise 0
+                const regX = parseInt(instruction[1], 16);
+                const regY = parseInt(instruction[2], 16);
+                const val = this.registers[regX] + this.registers[regY];
+                if (val > 255) {
+                  val = val % 256;
+                  this.registers[15] = 1;
+                } else {
+                  this.registers[15] = 0;
+                }
+                this.registers[regX] = val;
+              }
+              break;
+            case "5":
+              {
+                // 8XY5: Vx - Vy  Sets VX to VX - VY. Borrow of 8 bit value (>255) sets VF to 0, otherwise 1 (if result < 0, VF == 0, else VF == 1)
+                const regX = parseInt(instruction[1], 16);
+                const regY = parseInt(instruction[2], 16);
+                const val = this.registers[regX] - this.registers[regY];
+                if (val < 0) {
+                  val = (val + 256) % 256;
+                  this.registers[15] = 0;
+                } else {
+                  this.registers[15] = 1;
+                }
+                this.registers[regX] = val;
+              }
+              break;
+            case "7":
+              {
+                // 8XY7: Vy - Vx  Sets VX to VY - Vx. Borrow of 8 bit value (>255) sets VF to 0, otherwise 1 (if result < 0, VF == 0, else VF == 1)
+                const regX = parseInt(instruction[1], 16);
+                const regY = parseInt(instruction[2], 16);
+                const val = this.registers[regY] - this.registers[regX];
+                if (val < 0) {
+                  val = (val + 256) % 256;
+                  this.registers[15] = 0;
+                } else {
+                  this.registers[15] = 1;
+                }
+                this.registers[regX] = val;
+              }
+              break;
+            default:
+              throw new Error(`Invalid instruction encountered: ${instruction}`);
+          }
+        }
+        break;
       case "9":
         {
           // 9XY0: Cond 	if (Vx != Vy)  Skips the next instruction if VX does not equal VY
