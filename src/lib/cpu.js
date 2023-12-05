@@ -80,9 +80,44 @@ class CPU {
         }
         break;
       case "2":
+        {
+          // 2NNN: *(0xNNN)()  Calls subroutine at NNN.
+          const addr = parseInt(instruction.slice(1), 16);
+          if (!addr) throw new RangeError(`Invalid call address: ${addr} from instruction ${instruction}`);
+          this.stack.push(this._programCounter);
+          this._programCounter = addr;
+        }
+        break;
       case "3":
+        {
+          // 3XNN: Cond 	if (Vx == NN)  Skips the next instruction if VX equals NN
+          const reg = parseInt(instruction[1], 16);
+          const val = parseInt(instruction.slice(2), 16);
+          if (this.registers[reg] === val) {
+            this._programCounter += 2;
+          }
+        }
+        break;
       case "4":
+        {
+          // 4XNN: Cond 	if (Vx != NN)  Skips the next instruction if VX does not equal NN
+          const reg = parseInt(instruction[1], 16);
+          const val = parseInt(instruction.slice(2), 16);
+          if (this.registers[reg] !== val) {
+            this._programCounter += 2;
+          }
+        }
+        break;
       case "5":
+        {
+          // 5XY0: Cond 	if (Vx == Vy)  Skips the next instruction if VX equals VY
+          const regX = parseInt(instruction[1], 16);
+          const regY = parseInt(instruction[2], 16);
+          if (this.registers[regX] === this.registers[regY]) {
+            this._programCounter += 2;
+          }
+        }
+        break;
       case "6":
         {
           // 6XNN: Vx = NN  Sets VX to NN.
@@ -101,6 +136,15 @@ class CPU {
         break;
       case "8":
       case "9":
+        {
+          // 9XY0: Cond 	if (Vx != Vy)  Skips the next instruction if VX does not equal VY
+          const regX = parseInt(instruction[1], 16);
+          const regY = parseInt(instruction[2], 16);
+          if (this.registers[regX] !== this.registers[regY]) {
+            this._programCounter += 2;
+          }
+        }
+        break;
       case "A":
         {
           // ANNN: I = NNN  Sets I to the address NNN.
@@ -237,7 +281,8 @@ class Stack {
   }
   push(word) {
     console.log("pushing:", word);
-    if (this.length >= this._maxSize) throw new Error("Stack size exceeded!");
+    if (this.length >= this._maxSize) throw new RangeError("Stack size exceeded!");
+    if (word > 0xfff) throw new RangeError(`Attempt to push invalid value to stack :${word}`);
     this._stackInterface[--this._stackPointer] = word;
     this.length++;
   }
