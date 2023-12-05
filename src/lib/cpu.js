@@ -52,11 +52,13 @@ class CPU {
           switch (instruction[3]) {
             // 00E0: clear screen
             case "0":
+              console.log(`${instruction}: Screen Reset`);
               this.display.reset();
               break;
             // 00EE: return from subroutine
             case "E":
               {
+                console.log(`${instruction}: Return from subroutine`);
                 const addr = this.stack.pop();
                 if (!addr) {
                   throw new RangeError("Invalid return address from stack");
@@ -102,9 +104,10 @@ class CPU {
       case "A":
         {
           // ANNN: I = NNN  Sets I to the address NNN.
-          const addr = parseInt(instruction.slice(2), 16);
+          const addr = parseInt(instruction.slice(1), 16);
           if (!addr) throw new RangeError(`Invalid Index address: ${addr} from instruction ${instruction}`);
           this._indexReg = addr;
+          console.log("updated index reg:", this._indexReg, addr);
         }
         break;
       case "B":
@@ -125,11 +128,14 @@ class CPU {
           let y = this.registers[regY];
           let flipped = false;
           for (let i = 0; i < n; i++) {
+            console.log("INDEX REG:", this._indexReg + i);
+            console.log("writing to display:", this.byteInterface[this._indexReg + i], "bin:", this.byteInterface[this._indexReg + i].toString(2));
             const result = this.display.setPixelsByte(x, y + i, this.byteInterface[this._indexReg + i]);
             if (result) flipped = true;
           }
           if (flipped) this.registers[15] = 1;
           else this.registers[15] = 0;
+          this.display.paint();
         }
         break;
       case "E":

@@ -1,0 +1,9 @@
+#main-window {
+  display: flex;
+  border: 1px solid black;
+}
+#debug-info {
+  border: 1px solid black;
+}
+
+/* #half */
