@@ -21,7 +21,7 @@ try {
   const stepButton = document.getElementById("step-rom");
   stepButton.addEventListener("click", (e) => {
     try {
-      cpu.fetchInstruction();
+      cpu.cycle();
     } catch (error) {
       console.error("ERROR:", error);
     }

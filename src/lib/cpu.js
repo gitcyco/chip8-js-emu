@@ -37,6 +37,7 @@ class CPU {
     if (instruction === "0000") {
       throw new RangeError("Invalid memory access, instruction received was 0000");
     }
+    this.decodeExecuteInstruction(instruction);
   }
   decodeExecuteInstruction(instruction) {
     if (!instruction) throw new TypeError(`Missing instruction`);
@@ -116,6 +117,19 @@ class CPU {
           // I value does not change after the execution of this instruction.
           // VF is set to 1 if any screen pixels are flipped from set to unset
           // when the sprite is drawn, and to 0 if that does not happen.
+          let startAddr = this._indexReg;
+          const regX = parseInt(instruction[1], 16);
+          const regY = parseInt(instruction[2], 16);
+          const n = parseInt(instruction[3], 16);
+          const x = this.registers[regX];
+          let y = this.registers[regY];
+          let flipped = false;
+          for (let i = 0; i < n; i++) {
+            const result = this.display.setPixelsByte(x, y + i, this.byteInterface[this._indexReg + i]);
+            if (result) flipped = true;
+          }
+          if (flipped) this.registers[15] = 1;
+          else this.registers[15] = 0;
         }
         break;
       case "E":

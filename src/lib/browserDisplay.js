@@ -11,9 +11,7 @@ class BrowserDisplay extends Display {
     const canvas = document.getElementById("monitor");
     canvas.width = this.width * this.xDensity;
     canvas.height = this.height * this.yDensity;
-    this.displayPixels = new Array(this.height)
-      .fill(0)
-      .map((e) => new Array(this.width).fill(0));
+    this.displayPixels = new Array(this.height).fill(0).map((e) => new Array(this.width).fill(0));
     this.paint();
   }
   setPixel(ctx, x, y, bit) {
@@ -29,11 +27,14 @@ class BrowserDisplay extends Display {
   setPixelsByte(x, y, byte) {
     x = x % this.width;
     y = y % this.height;
+    let unset = false;
     for (let i = 0, mask = 0x80; i < 8 && x + i < this.width; i++, mask >>= 1) {
       if (byte & mask) {
         this.displayPixels[y][x + i] ^= 1;
+        if (this.displayPixels[y][x + i] === 0) unset = true;
       }
     }
+    return unset;
   }
   paint() {
     const canvas = document.getElementById("monitor");
