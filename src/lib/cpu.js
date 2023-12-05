@@ -28,10 +28,106 @@ class CPU {
     // this._stClearInterval = null;
     // this._loadFileFinished = false;
   }
+  cycle() {
+    // Run one clock cycle (one fetch, decode, execute iteration)
+    const instruction = this.fetchInstruction();
+    if (instruction === "null") {
+      return null;
+    }
+    if (instruction === "0000") {
+      throw new RangeError("Invalid memory access, instruction received was 0000");
+    }
+  }
+  decodeExecuteInstruction(instruction) {
+    if (!instruction) throw new TypeError(`Missing instruction`);
+    const type = instruction[0];
+
+    // Gigantic switch statement, this will definitely need to be refactored
+    // and/or moved somewhere else
+    switch (type) {
+      case "0":
+        {
+          // 0NNN: call host cpu machine code routine (not implementing)
+          switch (instruction[3]) {
+            // 00E0: clear screen
+            case "0":
+              this.display.reset();
+              break;
+            // 00EE: return from subroutine
+            case "E":
+              {
+                const addr = this.stack.pop();
+                if (!addr) {
+                  throw new RangeError("Invalid return address from stack");
+                }
+                this._programCounter = addr;
+              }
+              break;
+            default:
+              throw new Error(`Invalid instruction encountered: ${instruction}`);
+          }
+        }
+        break;
+      case "1":
+        {
+          // 1NNN: jump to address NNN
+          const addr = parseInt(instruction.slice(1), 16);
+          if (!addr) throw new RangeError(`Invalid jump address: ${addr} from instruction ${instruction}`);
+          this._programCounter = addr;
+        }
+        break;
+      case "2":
+      case "3":
+      case "4":
+      case "5":
+      case "6":
+        {
+          // 6XNN: Vx = NN  Sets VX to NN.
+          const reg = parseInt(instruction[1], 16);
+          const val = parseInt(instruction.slice(2), 16);
+          this.registers[reg] = val;
+        }
+        break;
+      case "7":
+        {
+          // 7XNN: Vx += NN  Adds NN to VX (carry flag is not changed).
+          const reg = parseInt(instruction[1], 16);
+          const val = parseInt(instruction.slice(2), 16);
+          this.registers[reg] += val;
+        }
+        break;
+      case "8":
+      case "9":
+      case "A":
+        {
+          // ANNN: I = NNN  Sets I to the address NNN.
+          const addr = parseInt(instruction.slice(2), 16);
+          if (!addr) throw new RangeError(`Invalid Index address: ${addr} from instruction ${instruction}`);
+          this._indexReg = addr;
+        }
+        break;
+      case "B":
+      case "C":
+      case "D":
+        {
+          // DXYN: Display  draw(Vx, Vy, N)
+          // Draws a sprite at coordinate (VX, VY) that has a width of 8 pixels and a height of N pixels.
+          // Each row of 8 pixels is read as bit-coded starting from memory location I;
+          // I value does not change after the execution of this instruction.
+          // VF is set to 1 if any screen pixels are flipped from set to unset
+          // when the sprite is drawn, and to 0 if that does not happen.
+        }
+        break;
+      case "E":
+      case "F":
+      default:
+        throw new Error(`Invalid instruction encountered: ${instruction}`);
+    }
+  }
   fetchInstruction() {
     if (!this._loadFileFinished) {
-      console.log("No program has been loaded.");
-      return null;
+      console.error("No program has been loaded.");
+      return "null";
     }
     if (this._programCounter >= this.byteInterface.length - 2) {
       throw new RangeError("Program Counter has exceeded memory bounds.");
@@ -41,6 +137,7 @@ class CPU {
     this._programCounter += 2;
     const instructionWord = (byte1.toString(16).padStart(2, 0) + byte2.toString(16).padStart(2, 0)).toUpperCase();
     console.log("instruction:", instructionWord);
+    return instructionWord;
   }
   async loadFromLocalFile(rom) {
     console.log("LOADING:", rom);
