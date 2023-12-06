@@ -43,7 +43,7 @@ class CPU {
   runner() {
     this._runnerClearInterval = setInterval(
       function () {
-        if (this._terminateRunner) {
+        if (this._terminateRunner || !this._loadFileFinished) {
           clearInterval(this._runnerClearInterval);
           this.cycleCounter = 0n;
           console.log("TERMINATING RUNNER");

@@ -1,9 +1,25 @@
+/* body {
+  height: 100%;
+} */
 #main-window {
   display: flex;
   border: 1px solid black;
+  /* height: 100%; */
 }
 #debug-info {
   border: 1px solid black;
 }
+#memory-display {
+  /* display: block; */
+}
+.key-button {
+  width: 40px;
+  height: 40px;
+  padding: 5px;
+  margin: 3px;
+}
+.text-input {
+  height: 100px;
+}
 
-/* #half */
+/* Keyboard styles */

@@ -34,6 +34,7 @@ try {
 
   const runButton = document.getElementById("run-rom");
   runButton.addEventListener("click", (e) => {
+    cpu._terminateRunner = false;
     cpu.runner();
   });
 
