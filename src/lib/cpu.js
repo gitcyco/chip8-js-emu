@@ -15,6 +15,7 @@ class CPU {
     this._ramsize = ramsize;
     this._stacksize = stacksize;
     this.legacy8XY = false;
+    this.legacyBNNN = true;
     this.initialize();
     // this._ram = new ArrayBuffer(this._ramsize);
     // this.wordInterface = new Uint16Array(this._ram);
@@ -131,8 +132,12 @@ class CPU {
         {
           // 7XNN: Vx += NN  Adds NN to VX (carry flag is not changed).
           const reg = parseInt(instruction[1], 16);
-          const val = parseInt(instruction.slice(2), 16);
-          this.registers[reg] += val;
+          const num = parseInt(instruction.slice(2), 16);
+          const val = num + this.registers[reg];
+          if (val > 255) {
+            val = val % 256;
+          }
+          this.registers[reg] = val;
         }
         break;
       case "8":
@@ -201,6 +206,19 @@ class CPU {
                 this.registers[regX] = val;
               }
               break;
+            case "6":
+              {
+                // 8XY6	BitOp  Vx >>= 1  Stores the least significant bit of VX in VF and then shifts VX to the right by 1.
+                const regX = parseInt(instruction[1], 16);
+                const regY = parseInt(instruction[2], 16);
+                if (this.legacy8XY) {
+                  this.registers[regX] = this.registers[regY];
+                }
+                const lowbit = this.registers[regX] & 1;
+                this.registers[regX] >>>= 1;
+                this.registers[15] = lowbit;
+              }
+              break;
             case "7":
               {
                 // 8XY7: Vy - Vx  Sets VX to VY - Vx. Borrow of 8 bit value (>255) sets VF to 0, otherwise 1 (if result < 0, VF == 0, else VF == 1)
@@ -214,6 +232,19 @@ class CPU {
                   this.registers[15] = 1;
                 }
                 this.registers[regX] = val;
+              }
+              break;
+            case "E":
+              {
+                // 8XY6	BitOp  Vx >>= 1  Stores the least significant bit of VX in VF and then shifts VX to the right by 1.
+                const regX = parseInt(instruction[1], 16);
+                const regY = parseInt(instruction[2], 16);
+                if (this.legacy8XY) {
+                  this.registers[regX] = this.registers[regY];
+                }
+                const highbit = this.registers[regX] >>> 7;
+                this.registers[regX] <<= 1;
+                this.registers[15] = highbit;
               }
               break;
             default:
@@ -241,7 +272,24 @@ class CPU {
         }
         break;
       case "B":
+        {
+          // BNNN Flow  PC = V0 + NNN  Jumps to the address NNN plus V0 (legacy mode - standard)
+          // BXNN Flow  PC = Vx + XNN  Jumps to the address NNN plus Vx
+          const regX = this.legacyBNNN ? 0 : parseInt(instruction[1], 16);
+          const addr = parseInt(instruction.slice(1), 16);
+          this._programCounter = addr + this.registers[regX];
+        }
+        break;
       case "C":
+        {
+          // CXNN  Rand  Vx = rand() & NN  Sets VX to the result of a bitwise AND operation on a random number (Typically: 0 to 255) and NN.
+          // Math.floor(Math.random() * (max - min) + min)
+          const regX = parseInt(instruction[1], 16);
+          const nn = parseInt(instruction.slice(2), 16);
+          const rand = Math.floor(Math.random() * 256);
+          this.registers[regX] = nn & rand;
+        }
+        break;
       case "D":
         {
           // DXYN: Display  draw(Vx, Vy, N)
