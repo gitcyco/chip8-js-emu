@@ -1,5 +1,6 @@
 const DELAY_TIMER_INTERVAL = 15;
 const SOUND_TIMER_INTERVAL = 15;
+const RUNNER_INTERVAL = 1;
 
 // Some programs will expect that the first byte of the loaded program
 // begin at address 0x200 (512) due to historical reasons.
@@ -14,21 +15,48 @@ class CPU {
     this.keyboard = keyboard;
     this._ramsize = ramsize;
     this._stacksize = stacksize;
+    this.initialize();
+  }
+  initialize() {
+    this._ram = new ArrayBuffer(this._ramsize);
+    this.wordInterface = new Uint16Array(this._ram);
+    this.byteInterface = new Uint8Array(this._ram);
+    this.stack = new Stack(this._ram, this._stacksize);
+    this.registers = new Array(16).fill(0);
+    this._delayTimer = 0;
+    this._soundtimer = 0;
+    this._indexReg = 0;
+    this._programCounter = LOAD_ADDRESS_BYTE;
+    if (this._dtClearInterval) clearInterval(this._dtClearInterval);
+    if (this._stClearInterval) clearInterval(this._stClearInterval);
+    this._dtClearInterval = null;
+    this._stClearInterval = null;
+    if (this._runnerClearInterval) clearInterval(this._run_runnerClearIntervalnerInterval);
+    this._runnerClearInterval = null;
+    this._terminateRunner = false;
+    this._loadFileFinished = false;
     this.legacy8XY = false;
     this.legacyBNNN = true;
-    this.initialize();
-    // this._ram = new ArrayBuffer(this._ramsize);
-    // this.wordInterface = new Uint16Array(this._ram);
-    // this.byteInterface = new Uint8Array(this._ram);
-    // this.stack = new Stack(this._ram, this._stacksize);
-    // this.registers = new Array(16).fill(0);
-    // this._delayTimer = 0;
-    // this._soundtimer = 0;
-    // this._indexReg = 0;
-    // this._programCounter = LOAD_ADDRESS_BYTE;
-    // this._dtClearInterval = null;
-    // this._stClearInterval = null;
-    // this._loadFileFinished = false;
+    this.cycleCounter = 0n;
+    this.display.reset();
+  }
+  runner() {
+    this._runnerClearInterval = setInterval(
+      function () {
+        if (this._terminateRunner) {
+          clearInterval(this._runnerClearInterval);
+          this.cycleCounter = 0n;
+          console.log("TERMINATING RUNNER");
+        } else {
+          this.cycleCounter++;
+          if (this.cycleCounter % 100n === 0n) {
+            console.log("RUNNING");
+          }
+          this.cycle();
+        }
+      }.bind(this),
+      RUNNER_INTERVAL
+    );
   }
   cycle() {
     // Run one clock cycle (one fetch, decode, execute iteration)
@@ -54,13 +82,13 @@ class CPU {
           switch (instruction[3]) {
             // 00E0: clear screen
             case "0":
-              console.log(`${instruction}: Screen Reset`);
+              // console.log(`${instruction}: Screen Reset`);
               this.display.reset();
               break;
             // 00EE: return from subroutine
             case "E":
               {
-                console.log(`${instruction}: Return from subroutine`);
+                // console.log(`${instruction}: Return from subroutine`);
                 const addr = this.stack.pop();
                 if (!addr) {
                   throw new RangeError("Invalid return address from stack");
@@ -268,7 +296,7 @@ class CPU {
           const addr = parseInt(instruction.slice(1), 16);
           if (!addr) throw new RangeError(`Invalid Index address: ${addr} from instruction ${instruction}`);
           this._indexReg = addr;
-          console.log("updated index reg:", this._indexReg, addr);
+          // console.log("updated index reg:", this._indexReg, addr);
         }
         break;
       case "B":
@@ -306,8 +334,8 @@ class CPU {
           let y = this.registers[regY];
           let flipped = false;
           for (let i = 0; i < n; i++) {
-            console.log("INDEX REG:", this._indexReg + i);
-            console.log("writing to display:", this.byteInterface[this._indexReg + i], "bin:", this.byteInterface[this._indexReg + i].toString(2));
+            // console.log("INDEX REG:", this._indexReg + i);
+            // console.log("writing to display:", this.byteInterface[this._indexReg + i], "bin:", this.byteInterface[this._indexReg + i].toString(2));
             const result = this.display.setPixelsByte(x, y + i, this.byteInterface[this._indexReg + i]);
             if (result) flipped = true;
           }
@@ -334,7 +362,7 @@ class CPU {
     const byte2 = this.byteInterface[this._programCounter + 1];
     this._programCounter += 2;
     const instructionWord = (byte1.toString(16).padStart(2, 0) + byte2.toString(16).padStart(2, 0)).toUpperCase();
-    console.log("instruction:", instructionWord);
+    // console.log("instruction:", instructionWord);
     return instructionWord;
   }
   async loadFromLocalFile(rom) {
@@ -387,22 +415,6 @@ class CPU {
   }
   get soundTimer() {
     return this._soundTimer;
-  }
-  initialize() {
-    this._ram = new ArrayBuffer(this._ramsize);
-    this.wordInterface = new Uint16Array(this._ram);
-    this.byteInterface = new Uint8Array(this._ram);
-    this.stack = new Stack(this._ram, this._stacksize);
-    this.registers = new Array(16).fill(0);
-    this._delayTimer = 0;
-    this._soundtimer = 0;
-    this._indexReg = 0;
-    this._programCounter = LOAD_ADDRESS_BYTE;
-    if (this._dtClearInterval) clearInterval(this._dtClearInterval);
-    if (this._stClearInterval) clearInterval(this._stClearInterval);
-    this._dtClearInterval = null;
-    this._stClearInterval = null;
-    this._loadFileFinished = false;
   }
 }
 

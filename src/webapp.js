@@ -32,6 +32,16 @@ try {
     cpu.initialize();
   });
 
+  const runButton = document.getElementById("run-rom");
+  runButton.addEventListener("click", (e) => {
+    cpu.runner();
+  });
+
+  const stopButton = document.getElementById("stop-rom");
+  stopButton.addEventListener("click", (e) => {
+    console.log("attempting to stop running...");
+    cpu._terminateRunner = true;
+  });
   // randomize();
 
   // display.setPixelsByte(22, 10, 202);
