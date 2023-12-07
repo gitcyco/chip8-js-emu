@@ -6,6 +6,7 @@ try {
   const display = new BrowserDisplay(64, 32, 10, 10);
   const keyboard = new BrowserKeyboard();
   const cpu = new CPU(display, keyboard, 4096, 48);
+  cpu.initialize();
 
   // cpu.loadFromLocalFile("../roms/IBM Logo.ch8");
 
@@ -43,12 +44,30 @@ try {
     console.log("attempting to stop running...");
     cpu._terminateRunner = true;
   });
+
+  document.addEventListener("keydown", (e) => {
+    // console.log(`key is down: ${e.key}`);
+    keyboard.keyDown(e.key);
+  });
+
+  document.addEventListener("keyup", (e) => {
+    // console.log(`key is up: ${e.key}`);
+    keyboard.keyUp(e.key);
+  });
+
+  // setInterval(() => {
+  //   const key = keyboard.keys.indexOf(1);
+  //   if (key !== -1) {
+  //     console.log(`key ${keyboard.keySymbols[key]} was pressed`);
+  //   }
+  // }, 1);
+
   // randomize();
 
   // display.setPixelsByte(22, 10, 202);
   // display.setPixelsByte(22, 15, 212);
-  display.setPixelsByte(22, 20, 242);
-  display.paint();
+  // display.setPixelsByte(22, 20, 242);
+  // display.paint();
 
   function randomize() {
     for (let x = 0; x < display.width; x++) {
