@@ -55,10 +55,24 @@ try {
     keyboard.keyUp(e.key);
   });
 
+  const keyPad = document.getElementsByClassName("key-button");
+  for (let button of keyPad) {
+    console.log(button.innerText);
+    button.addEventListener("mousedown", (e) => {
+      const key = e.target.innerText.toUpperCase();
+      keyboard.keyDown(key);
+      console.log(`button ${key} is down`);
+    });
+    button.addEventListener("mouseup", (e) => {
+      const key = e.target.innerText.toUpperCase();
+      keyboard.keyUp(key);
+      console.log(`button ${key} is up`);
+    });
+  }
   // setInterval(() => {
   //   const key = keyboard.keys.indexOf(1);
   //   if (key !== -1) {
-  //     console.log(`key ${keyboard.keySymbols[key]} was pressed`);
+  //     console.log(`key ${keyboard.keySymbols[key]} is currently being pressed`);
   //   }
   // }, 1);
 
@@ -68,15 +82,6 @@ try {
   // display.setPixelsByte(22, 15, 212);
   // display.setPixelsByte(22, 20, 242);
   // display.paint();
-
-  function randomize() {
-    for (let x = 0; x < display.width; x++) {
-      for (let y = 0; y < display.height; y++) {
-        display.displayPixels[y][x] = Math.random() < 0.5 ? 0 : 1;
-      }
-    }
-    display.paint();
-  }
 } catch (error) {
   console.error("ERROR:", error);
 }

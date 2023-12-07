@@ -45,6 +45,14 @@ class BrowserDisplay extends Display {
       }
     }
   }
+  randomize() {
+    for (let x = 0; x < display.width; x++) {
+      for (let y = 0; y < display.height; y++) {
+        display.displayPixels[y][x] = Math.random() < 0.5 ? 0 : 1;
+      }
+    }
+    display.paint();
+  }
 }
 
 module.exports = BrowserDisplay;
