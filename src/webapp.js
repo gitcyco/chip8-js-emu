@@ -76,10 +76,6 @@ try {
   //   }
   // }, 1);
 
-  // randomize();
-
-  // display.setPixelsByte(22, 10, 202);
-  // display.setPixelsByte(22, 15, 212);
   // display.setPixelsByte(22, 20, 242);
   // display.paint();
 } catch (error) {
