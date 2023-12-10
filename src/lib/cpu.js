@@ -345,6 +345,32 @@ class CPU {
         }
         break;
       case "E":
+        {
+          const type = instruction.slice(2);
+          switch (type) {
+            case "9E":
+              // EX9E KeyOp  if (key() == Vx)  Skips the next instruction if the key stored in VX is pressed.
+              {
+                const reg = parseInt(instruction[1], 16);
+                const key = parseInt(this.registers[reg]);
+                if (this.keyboard.keys[key] === 1) {
+                  this._programCounter += 2;
+                }
+              }
+              break;
+            case "A1":
+              // EXA1 KeyOp  if (key() != Vx)  Skips the next instruction if the key stored in VX is not pressed.
+              {
+                const reg = parseInt(instruction[1], 16);
+                const key = parseInt(this.registers[reg]);
+                if (this.keyboard.keys[key] === 0) {
+                  this._programCounter += 2;
+                }
+              }
+              break;
+          }
+        }
+        break;
       case "F":
       default:
         throw new Error(`Invalid instruction encountered: ${instruction}`);
