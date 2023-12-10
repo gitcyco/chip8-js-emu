@@ -37,6 +37,7 @@ class CPU {
     this._loadFileFinished = false;
     this.legacy8XY = false;
     this.legacyBNNN = true;
+    this.legacyFX1E = false;
     this.cycleCounter = 0n;
     this.display.reset();
   }
@@ -371,7 +372,67 @@ class CPU {
           }
         }
         break;
+
+      //         FX0A 	KeyOp 	Vx = get_key() 	    A key press is awaited, and then stored in VX
+      //                                            (blocking operation, all instruction halted until next key event).
+      //         FX29 	MEM 	I = sprite_addr[Vx] 	Sets I to the location of the sprite for the character in VX.
+      //                                            Characters 0-F (in hexadecimal) are represented by a 4x5 font.
+      //         FX33 	BCD
+      //
+      //         set_BCD(Vx)                        Stores the binary-coded decimal representation of VX, with the hundreds
+      //                                            digit in memory at location in I, the tens digit at location I+1, and the ones digit at location I+2.
+      //         *(I+0) = BCD(3);
+      //         *(I+1) = BCD(2);
+      //         *(I+2) = BCD(1);
+
+      //
+      //         FX55 	MEM 	reg_dump(Vx, &I) 	    Stores from V0 to VX (including VX) in memory, starting at address I.
+      //                                            The offset from I is increased by 1 for each value written, but I itself is left unmodified.[d]
+      //         FX65 	MEM 	reg_load(Vx, &I) 	    Fills from V0 to VX (including VX) with values from memory, starting at address I.
+      //                                            The offset from I is increased by 1 for each value read, but I itself is left unmodified.[d]
+
       case "F":
+        {
+          const type = instruction.slice(2);
+          const reg = parseInt(instruction[1], 16);
+          switch (type) {
+            case "07":
+              {
+                // FX07 Timer  Vx = get_delay()  Sets VX to the value of the delay timer.
+                this.registers[reg] = this._delayTimer;
+              }
+              break;
+            case "0A":
+            case "15":
+              {
+                // FX15 Timer  delay_timer(Vx)  Sets the delay timer to VX.
+                this.delayTimer(this.registers[reg]);
+              }
+              break;
+            case "18":
+              {
+                // FX18 Sound  sound_timer(Vx)  Sets the sound timer to VX.
+                this.soundTimer(this.registers[reg]);
+              }
+              break;
+            case "1E":
+              {
+                // FX1E MEM  I += Vx  Adds VX to I. VF is not affected on original implementation (legacy mode)
+                //                    On overflow from 0x1000 (4096) set VF to 1 for compatability.
+                //                    Spaceflight 2091! requires this behavior (from the Amiga Chip-8 emu)
+                let newI = this._indexReg + this.registers[reg];
+                if (newI > 0x1000 && !this.legacyFX1E) this.registers[15] = 1;
+              }
+              break;
+            case "29":
+            case "33":
+            case "55":
+            case "65":
+            default:
+              throw new Error(`Invalid instruction encountered: ${instruction}`);
+          }
+        }
+        break;
       default:
         throw new Error(`Invalid instruction encountered: ${instruction}`);
     }
