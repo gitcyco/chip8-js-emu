@@ -9,6 +9,8 @@ const RUNNER_INTERVAL = 1;
 // Changing this could break things, so we will just load the font data into low memory.
 const LOAD_ADDRESS_BYTE = 0x200;
 const LOAD_ADDRESS_WORD = 0x100;
+const LOAD_FONT_ADDRESS_BYTE = 0x50;
+const FONT_SIZE_BYTES = 5;
 
 class CPU {
   constructor(display, keyboard, ramsize, stacksize) {
@@ -20,8 +22,6 @@ class CPU {
     this.initialize();
   }
   initialize() {
-    this.systemFont = systemFont;
-    console.log("FONT:", this.systemFont);
     this._ram = new ArrayBuffer(this._ramsize);
     this.wordInterface = new Uint16Array(this._ram);
     this.byteInterface = new Uint8Array(this._ram);
@@ -42,8 +42,18 @@ class CPU {
     this.legacy8XY = false;
     this.legacyBNNN = true;
     this.legacyFX1E = false;
+    this.legacyFX55 = false;
+    this.legacyFX65 = false;
     this.cycleCounter = 0n;
-    this.fontAddress = null;
+    this.systemFont = systemFont;
+    this.loadRAMAtOffset(this.systemFont, LOAD_FONT_ADDRESS_BYTE);
+    this.fontAddress = LOAD_FONT_ADDRESS_BYTE;
+    // this.byteInterface[this.fontAddress + (idx * 5)]
+    for (let i = 0; i < 16 * FONT_SIZE_BYTES; i++) {
+      console.log(i, this.byteInterface[LOAD_FONT_ADDRESS_BYTE + i].toString(2).padStart(8, 0));
+    }
+
+    console.log("FONT:", this.systemFont);
     this.display.reset();
   }
   runner() {
@@ -74,6 +84,21 @@ class CPU {
       throw new RangeError("Invalid memory access, instruction received was 0000");
     }
     this.decodeExecuteInstruction(instruction);
+  }
+  fetchInstruction() {
+    if (!this._loadFileFinished) {
+      console.error("No program has been loaded.");
+      return "null";
+    }
+    if (this._programCounter >= this.byteInterface.length - 2) {
+      throw new RangeError("Program Counter has exceeded memory bounds.");
+    }
+    const byte1 = this.byteInterface[this._programCounter];
+    const byte2 = this.byteInterface[this._programCounter + 1];
+    this._programCounter += 2;
+    const instructionWord = (byte1.toString(16).padStart(2, 0) + byte2.toString(16).padStart(2, 0)).toUpperCase();
+    // console.log("instruction:", instructionWord);
+    return instructionWord;
   }
   decodeExecuteInstruction(instruction) {
     if (!instruction) throw new TypeError(`Missing instruction`);
@@ -378,24 +403,6 @@ class CPU {
         }
         break;
 
-      //         FX0A 	KeyOp 	Vx = get_key() 	    A key press is awaited, and then stored in VX
-      //                                            (blocking operation, all instruction halted until next key event).
-      //         FX29 	MEM 	I = sprite_addr[Vx] 	Sets I to the location of the sprite for the character in VX.
-      //                                            Characters 0-F (in hexadecimal) are represented by a 4x5 font.
-      //         FX33 	BCD
-      //
-      //         set_BCD(Vx)                        Stores the binary-coded decimal representation of VX, with the hundreds
-      //                                            digit in memory at location in I, the tens digit at location I+1, and the ones digit at location I+2.
-      //         *(I+0) = BCD(3);
-      //         *(I+1) = BCD(2);
-      //         *(I+2) = BCD(1);
-
-      //
-      //         FX55 	MEM 	reg_dump(Vx, &I) 	    Stores from V0 to VX (including VX) in memory, starting at address I.
-      //                                            The offset from I is increased by 1 for each value written, but I itself is left unmodified.[d]
-      //         FX65 	MEM 	reg_load(Vx, &I) 	    Fills from V0 to VX (including VX) with values from memory, starting at address I.
-      //                                            The offset from I is increased by 1 for each value read, but I itself is left unmodified.[d]
-
       case "F":
         {
           const type = instruction.slice(2);
@@ -408,6 +415,23 @@ class CPU {
               }
               break;
             case "0A":
+              {
+                // FX0A KeyOp  Vx = get_key()  A key press is awaited, and then stored in VX.
+                // This is a blocking event, await a key press before resuming execution
+                // of further instructions. This is handled via looping on the same
+                // instruction by decrementing the program counter if no key is pressed.
+                // This one instruction will just execute indeterminately until a key is pressed.
+                // This will have to be handled differently in stepping mode, so that it actually blocks
+                // to await a key press.
+                // Perhaps spawn a setInterval to check for a key to be pressed before continuing.
+                if (this.keyboard.keys.some((e) => e === 1)) {
+                  const keyPressed = this.keyboard.keys.indexOf(1);
+                  this.registers[reg] = keyPressed;
+                } else {
+                  this._programCounter -= 2;
+                }
+              }
+              break;
             case "15":
               {
                 // FX15 Timer  delay_timer(Vx)  Sets the delay timer to VX.
@@ -425,14 +449,67 @@ class CPU {
                 // FX1E MEM  I += Vx  Adds VX to I. VF is not affected on original implementation (legacy mode)
                 //                    On overflow from 0x1000 (4096) set VF to 1 for compatability.
                 //                    Spaceflight 2091! requires this behavior (from the Amiga Chip-8 emu)
-                let newI = this._indexReg + this.registers[reg];
+                const newI = this._indexReg + this.registers[reg];
                 if (newI > 0x1000 && !this.legacyFX1E) this.registers[15] = 1;
               }
               break;
             case "29":
+              {
+                // FX29 MEM  I = sprite_addr[Vx]  Sets I to the location of the sprite for the character in VX.
+                // Mask off the high 4 bits since we only have sprites for 0-F.
+                const char = this.registers[reg] & 0xf;
+                this._indexReg = this.fontAddress + char * FONT_SIZE_BYTES;
+              }
+              break;
             case "33":
+              {
+                // FX33 BCD
+                // set_BCD(Vx)  Stores the binary-coded decimal representation of VX,
+                //              with the hundreds digit in memory at location in I,
+                //              the tens digit at location I+1,
+                //              and the ones digit at location I+2.
+                const val = this.registers[reg] & 0xff;
+                const index = this._indexReg;
+                if (index > this.byteInterface.length - 3) throw RangeError(`Invalid address in index register for instruction FX33 ${index}`);
+                for (let i = 2; i >= 0; i--) {
+                  let digit = val % 10;
+                  this.byteInterface[index + i] = digit;
+                  val = Math.floor(val / 10);
+                }
+              }
+              break;
             case "55":
-            case "65":
+              {
+                // FX55 MEM  reg_dump(Vx, &I)  Stores from V0 to VX (including VX) in memory, starting at address I.
+                //           Modern Mode       The offset from I is increased by 1 for each
+                //                             value written, but I itself is left unmodified.
+                //           Legacy Mode       I is increased after each write, leaving the final value in I
+                //                             to be I + X + 1 (0-X being the range written)
+                const endReg = this.registers[reg];
+                if (endReg > 15) throw RangeError(`Invalid register range for instruction FX55, ending register was ${endReg}`);
+                let index = this._indexReg;
+                if (index > this.byteInterface.length) throw RangeError(`Invalid address in index register for instruction FX55 ${index}`);
+                for (let i = 0; i <= endReg; i++) {
+                  this.byteInterface[index + i] = this.registers[i];
+                  if (this.legacyFX55) this._indexReg++;
+                }
+              }
+              break;
+            case "65": {
+              // FX65 MEM  reg_load(Vx, &I)  Fills from V0 to VX (including VX) with values from memory, starting at address I.
+              //           Modern Mode       The offset from I is increased by 1 for each
+              //                             value read, but I itself is left unmodified.[d]
+              //           Legacy Mode       I is increased after each write, leaving the final value in I
+              //                             to be I + X + 1 (0-X being the range written)
+              const endReg = this.registers[reg];
+              if (endReg > 15) throw RangeError(`Invalid register range for instruction FX55, ending register was ${endReg}`);
+              let index = this._indexReg;
+              if (index > this.byteInterface.length) throw RangeError(`Invalid address in index register for instruction FX65 ${index}`);
+              for (let i = 0; i <= endReg; i++) {
+                this.registers[i] = this.byteInterface[index + i];
+                if (this.legacyFX55) this._indexReg++;
+              }
+            }
             default:
               throw new Error(`Invalid instruction encountered: ${instruction}`);
           }
@@ -442,26 +519,11 @@ class CPU {
         throw new Error(`Invalid instruction encountered: ${instruction}`);
     }
   }
-  fetchInstruction() {
-    if (!this._loadFileFinished) {
-      console.error("No program has been loaded.");
-      return "null";
-    }
-    if (this._programCounter >= this.byteInterface.length - 2) {
-      throw new RangeError("Program Counter has exceeded memory bounds.");
-    }
-    const byte1 = this.byteInterface[this._programCounter];
-    const byte2 = this.byteInterface[this._programCounter + 1];
-    this._programCounter += 2;
-    const instructionWord = (byte1.toString(16).padStart(2, 0) + byte2.toString(16).padStart(2, 0)).toUpperCase();
-    // console.log("instruction:", instructionWord);
-    return instructionWord;
-  }
+
   loadRAMAtOffset(bytes, startAddress) {
     for (let i = 0; i < bytes.length; i++) {
       this.byteInterface[startAddress + i] = bytes[i];
     }
-    this.fontAddress = startAddress;
   }
   async loadRAMFromLocalFile(rom) {
     console.log("LOADING:", rom);
