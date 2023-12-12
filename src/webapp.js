@@ -6,7 +6,7 @@ try {
   const display = new BrowserDisplay(64, 32, 10, 10);
   const keyboard = new BrowserKeyboard();
   const cpu = new CPU(display, keyboard, 4096, 48);
-  cpu.initialize();
+  // cpu.initialize();
 
   // cpu.loadFromLocalFile("../roms/IBM Logo.ch8");
 
@@ -15,7 +15,7 @@ try {
     const rom = document.getElementById("input-rom").files[0];
     if (rom) {
       console.log("loaded rom:", rom);
-      await cpu.loadFromLocalFile(rom);
+      await cpu.loadRAMFromLocalFile(rom);
     }
   });
 
@@ -57,7 +57,7 @@ try {
 
   const keyPad = document.getElementsByClassName("key-button");
   for (let button of keyPad) {
-    console.log(button.innerText);
+    // console.log(button.innerText);
     button.addEventListener("mousedown", (e) => {
       const key = e.target.innerText.toUpperCase();
       keyboard.keyDown(key);

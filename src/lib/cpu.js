@@ -1,3 +1,5 @@
+const systemFont = require("../../fonts/system");
+
 const DELAY_TIMER_INTERVAL = 15;
 const SOUND_TIMER_INTERVAL = 15;
 const RUNNER_INTERVAL = 1;
@@ -18,6 +20,8 @@ class CPU {
     this.initialize();
   }
   initialize() {
+    this.systemFont = systemFont;
+    console.log("FONT:", this.systemFont);
     this._ram = new ArrayBuffer(this._ramsize);
     this.wordInterface = new Uint16Array(this._ram);
     this.byteInterface = new Uint8Array(this._ram);
@@ -39,6 +43,7 @@ class CPU {
     this.legacyBNNN = true;
     this.legacyFX1E = false;
     this.cycleCounter = 0n;
+    this.fontAddress = null;
     this.display.reset();
   }
   runner() {
@@ -452,7 +457,13 @@ class CPU {
     // console.log("instruction:", instructionWord);
     return instructionWord;
   }
-  async loadFromLocalFile(rom) {
+  loadRAMAtOffset(bytes, startAddress) {
+    for (let i = 0; i < bytes.length; i++) {
+      this.byteInterface[startAddress + i] = bytes[i];
+    }
+    this.fontAddress = startAddress;
+  }
+  async loadRAMFromLocalFile(rom) {
     console.log("LOADING:", rom);
     const buffer = await rom.arrayBuffer();
     const bytes = new Uint8Array(buffer);
