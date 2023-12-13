@@ -23,7 +23,7 @@ class CPU {
   }
   initialize() {
     this._ram = new ArrayBuffer(this._ramsize);
-    this.wordInterface = new Uint16Array(this._ram);
+    // this.wordInterface = new Uint16Array(this._ram);
     this.byteInterface = new Uint8Array(this._ram);
     this.stack = new Stack(this._ram, this._stacksize);
     this.registers = new Array(16).fill(0);
@@ -103,7 +103,7 @@ class CPU {
   decodeExecuteInstruction(instruction) {
     if (!instruction) throw new TypeError(`Missing instruction`);
     const type = instruction[0];
-
+    // console.log("current instruction:", instruction);
     // Gigantic switch statement, this will definitely need to be refactored
     // and/or moved somewhere else
     switch (type) {
@@ -240,7 +240,7 @@ class CPU {
                 // 8XY4: Vx + Vy  Sets VX to VX + VY. Overflow of 8 bit value (>255) sets VF to 1, otherwise 0
                 const regX = parseInt(instruction[1], 16);
                 const regY = parseInt(instruction[2], 16);
-                const val = this.registers[regX] + this.registers[regY];
+                let val = this.registers[regX] + this.registers[regY];
                 if (val > 255) {
                   val = val % 256;
                   this.registers[15] = 1;
@@ -255,7 +255,7 @@ class CPU {
                 // 8XY5: Vx - Vy  Sets VX to VX - VY. Borrow of 8 bit value (>255) sets VF to 0, otherwise 1 (if result < 0, VF == 0, else VF == 1)
                 const regX = parseInt(instruction[1], 16);
                 const regY = parseInt(instruction[2], 16);
-                const val = this.registers[regX] - this.registers[regY];
+                let val = this.registers[regX] - this.registers[regY];
                 if (val < 0) {
                   val = (val + 256) % 256;
                   this.registers[15] = 0;
@@ -283,7 +283,7 @@ class CPU {
                 // 8XY7: Vy - Vx  Sets VX to VY - Vx. Borrow of 8 bit value (>255) sets VF to 0, otherwise 1 (if result < 0, VF == 0, else VF == 1)
                 const regX = parseInt(instruction[1], 16);
                 const regY = parseInt(instruction[2], 16);
-                const val = this.registers[regY] - this.registers[regX];
+                let val = this.registers[regY] - this.registers[regX];
                 if (val < 0) {
                   val = (val + 256) % 256;
                   this.registers[15] = 0;
@@ -435,13 +435,13 @@ class CPU {
             case "15":
               {
                 // FX15 Timer  delay_timer(Vx)  Sets the delay timer to VX.
-                this.delayTimer(this.registers[reg]);
+                this.delayTimer = this.registers[reg];
               }
               break;
             case "18":
               {
                 // FX18 Sound  sound_timer(Vx)  Sets the sound timer to VX.
-                this.soundTimer(this.registers[reg]);
+                this.soundTimer = this.registers[reg];
               }
               break;
             case "1E":
@@ -529,8 +529,8 @@ class CPU {
     console.log("LOADING:", rom);
     const buffer = await rom.arrayBuffer();
     const bytes = new Uint8Array(buffer);
-    const words = new Uint16Array(buffer);
-    console.log("raw rom:", bytes, words);
+    // const words = new Uint16Array(buffer);
+    console.log("raw rom:", bytes);
     for (let i = 0; i < bytes.length; i++) {
       this.byteInterface[LOAD_ADDRESS_BYTE + i] = bytes[i];
     }
