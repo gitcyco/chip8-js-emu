@@ -2,7 +2,7 @@ const systemFont = require("../../fonts/system");
 
 const DELAY_TIMER_INTERVAL = 15;
 const SOUND_TIMER_INTERVAL = 15;
-const RUNNER_INTERVAL = 1;
+const RUNNER_INTERVAL = 16;
 
 // Some programs will expect that the first byte of the loaded program
 // begin at address 0x200 (512) due to historical reasons.
@@ -64,11 +64,12 @@ class CPU {
           this.cycleCounter = 0n;
           console.log("TERMINATING RUNNER");
         } else {
-          this.cycleCounter++;
-          if (this.cycleCounter % 100n === 0n) {
-            console.log("RUNNING");
-          }
-          this.cycle();
+          // this.cycleCounter++;
+          // if (this.cycleCounter % 1000n === 0n) {
+          //   console.log("RUNNING");
+          // }
+          // this.cycle();
+          for (let i = 0; i < 10; i++) this.cycle();
         }
       }.bind(this),
       RUNNER_INTERVAL
@@ -104,6 +105,7 @@ class CPU {
     if (!instruction) throw new TypeError(`Missing instruction`);
     const type = instruction[0];
     // console.log("current instruction:", instruction);
+    // console.log("current instruction type:", type);
     // Gigantic switch statement, this will definitely need to be refactored
     // and/or moved somewhere else
     switch (type) {
@@ -128,7 +130,7 @@ class CPU {
               }
               break;
             default:
-              throw new Error(`Invalid instruction encountered: ${instruction}`);
+              throw new Error(`Invalid 0 instruction encountered: ${instruction}`);
           }
         }
         break;
@@ -192,7 +194,7 @@ class CPU {
           // 7XNN: Vx += NN  Adds NN to VX (carry flag is not changed).
           const reg = parseInt(instruction[1], 16);
           const num = parseInt(instruction.slice(2), 16);
-          const val = num + this.registers[reg];
+          let val = num + this.registers[reg];
           if (val > 255) {
             val = val % 256;
           }
@@ -201,8 +203,8 @@ class CPU {
         break;
       case "8":
         {
-          const type = instruction[3];
-          switch (type) {
+          const subType = instruction[3];
+          switch (subType) {
             case "0":
               {
                 // 8XY0: Vx = Vy  Sets VX to the value of VY.
@@ -307,7 +309,7 @@ class CPU {
               }
               break;
             default:
-              throw new Error(`Invalid instruction encountered: ${instruction}`);
+              throw new Error(`Invalid 8 instruction encountered: ${instruction}`);
           }
         }
         break;
@@ -377,8 +379,8 @@ class CPU {
         break;
       case "E":
         {
-          const type = instruction.slice(2);
-          switch (type) {
+          const subType = instruction.slice(2);
+          switch (subType) {
             case "9E":
               // EX9E KeyOp  if (key() == Vx)  Skips the next instruction if the key stored in VX is pressed.
               {
@@ -399,15 +401,18 @@ class CPU {
                 }
               }
               break;
+            default:
+              throw new Error(`Invalid E instruction encountered: ${instruction}`);
           }
         }
         break;
 
       case "F":
         {
-          const type = instruction.slice(2);
+          const subType = instruction.slice(2);
           const reg = parseInt(instruction[1], 16);
-          switch (type) {
+          // console.log("F subtype:", subType);
+          switch (subType) {
             case "07":
               {
                 // FX07 Timer  Vx = get_delay()  Sets VX to the value of the delay timer.
@@ -468,7 +473,7 @@ class CPU {
                 //              with the hundreds digit in memory at location in I,
                 //              the tens digit at location I+1,
                 //              and the ones digit at location I+2.
-                const val = this.registers[reg] & 0xff;
+                let val = this.registers[reg] & 0xff;
                 const index = this._indexReg;
                 if (index > this.byteInterface.length - 3) throw RangeError(`Invalid address in index register for instruction FX33 ${index}`);
                 for (let i = 2; i >= 0; i--) {
@@ -485,7 +490,7 @@ class CPU {
                 //                             value written, but I itself is left unmodified.
                 //           Legacy Mode       I is increased after each write, leaving the final value in I
                 //                             to be I + X + 1 (0-X being the range written)
-                const endReg = this.registers[reg];
+                const endReg = reg;
                 if (endReg > 15) throw RangeError(`Invalid register range for instruction FX55, ending register was ${endReg}`);
                 let index = this._indexReg;
                 if (index > this.byteInterface.length) throw RangeError(`Invalid address in index register for instruction FX55 ${index}`);
@@ -495,23 +500,25 @@ class CPU {
                 }
               }
               break;
-            case "65": {
-              // FX65 MEM  reg_load(Vx, &I)  Fills from V0 to VX (including VX) with values from memory, starting at address I.
-              //           Modern Mode       The offset from I is increased by 1 for each
-              //                             value read, but I itself is left unmodified.[d]
-              //           Legacy Mode       I is increased after each write, leaving the final value in I
-              //                             to be I + X + 1 (0-X being the range written)
-              const endReg = this.registers[reg];
-              if (endReg > 15) throw RangeError(`Invalid register range for instruction FX55, ending register was ${endReg}`);
-              let index = this._indexReg;
-              if (index > this.byteInterface.length) throw RangeError(`Invalid address in index register for instruction FX65 ${index}`);
-              for (let i = 0; i <= endReg; i++) {
-                this.registers[i] = this.byteInterface[index + i];
-                if (this.legacyFX55) this._indexReg++;
+            case "65":
+              {
+                // FX65 MEM  reg_load(Vx, &I)  Fills from V0 to VX (including VX) with values from memory, starting at address I.
+                //           Modern Mode       The offset from I is increased by 1 for each
+                //                             value read, but I itself is left unmodified.[d]
+                //           Legacy Mode       I is increased after each write, leaving the final value in I
+                //                             to be I + X + 1 (0-X being the range written)
+                const endReg = reg;
+                if (endReg > 15) throw RangeError(`Invalid register range for instruction FX55, ending register was ${endReg}`);
+                let index = this._indexReg;
+                if (index > this.byteInterface.length) throw RangeError(`Invalid address in index register for instruction FX65 ${index}`);
+                for (let i = 0; i <= endReg; i++) {
+                  this.registers[i] = this.byteInterface[index + i];
+                  if (this.legacyFX55) this._indexReg++;
+                }
               }
-            }
+              break;
             default:
-              throw new Error(`Invalid instruction encountered: ${instruction}`);
+              throw new Error(`Invalid F instruction encountered: ${instruction}`);
           }
         }
         break;
@@ -586,7 +593,7 @@ class Stack {
     this.length = this._stackInterface.length - this._stackPointer;
   }
   push(word) {
-    console.log("pushing:", word);
+    // console.log("pushing:", word);
     if (this.length >= this._maxSize) throw new RangeError("Stack size exceeded!");
     if (word > 0xfff) throw new RangeError(`Attempt to push invalid value to stack :${word}`);
     this._stackInterface[--this._stackPointer] = word;
