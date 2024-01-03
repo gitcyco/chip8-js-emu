@@ -1,9 +1,31 @@
+nav {
+  background-color: grey;
+  padding: 1rem;
+}
+
+nav ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: space-around;
+}
+
+nav ul li {
+  font-family: Roboto;
+  font-weight: 400;
+  font-size: 40px;
+}
+
+body {
+  background-color: lightgray;
+}
 #main-window {
   display: flex;
-  border: 1px solid black;
+  /* border: 1px solid black; */
 }
 #debug-info {
-  border: 1px solid black;
+  /* border: 1px solid black; */
 }
 #memory-display {
   /* display: block; */
