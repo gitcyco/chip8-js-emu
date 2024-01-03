@@ -113,14 +113,16 @@ class CPU {
         {
           // 0NNN: call host cpu machine code routine (not implementing)
           switch (instruction[3]) {
-            // 00E0: clear screen
             case "0":
-              // console.log(`${instruction}: Screen Reset`);
-              this.display.reset();
+              {
+                // 00E0: clear screen
+                // console.log(`${instruction}: Screen Reset`);
+                this.display.reset();
+              }
               break;
-            // 00EE: return from subroutine
             case "E":
               {
+                // 00EE: return from subroutine
                 // console.log(`${instruction}: Return from subroutine`);
                 const addr = this.stack.pop();
                 if (!addr) {
