@@ -19,6 +19,12 @@ class CPU {
     this.keyboard = keyboard;
     this._ramsize = ramsize;
     this._stacksize = stacksize;
+    // Legacy defaults:
+    this.legacy8XY = false;
+    this.legacyBNNN = true;
+    this.legacyFX1E = false;
+    this.legacyFX55 = false;
+    this.legacyFX65 = false;
     this.initialize();
   }
   initialize() {
@@ -39,34 +45,26 @@ class CPU {
     this._runnerClearInterval = null;
     this._terminateRunner = true;
     this._loadFileFinished = false;
-    this.legacy8XY = false;
-    this.legacyBNNN = true;
-    this.legacyFX1E = false;
-    this.legacyFX55 = false;
-    this.legacyFX65 = false;
     this.cycleCounter = 0n;
     this.systemFont = systemFont;
     this.loadRAMAtOffset(this.systemFont, LOAD_FONT_ADDRESS_BYTE);
     this.fontAddress = LOAD_FONT_ADDRESS_BYTE;
     // this.byteInterface[this.fontAddress + (idx * 5)]
-    for (let i = 0; i < 16 * FONT_SIZE_BYTES; i++) {
-      console.log(i, this.byteInterface[LOAD_FONT_ADDRESS_BYTE + i].toString(2).padStart(8, 0));
-    }
+    // for (let i = 0; i < 16 * FONT_SIZE_BYTES; i++) {
+    //   console.log(i, this.byteInterface[LOAD_FONT_ADDRESS_BYTE + i].toString(2).padStart(8, 0));
+    // }
 
     console.log("FONT:", this.systemFont);
     this.display.reset();
   }
+  // Format of settings:
+  // [["parameter1", true], ["parameter2", false],....]
   setLegacyModes(settings) {
     for (let [name, value] of settings) {
-      if (name in this) {
+      if (name in this && name.startsWith("legacy")) {
         this[name] = value;
       }
     }
-    // for (let [name] of settings) {
-    //   if (name in this) {
-    //     console.log(`${name}:`, this[name]);
-    //   }
-    // }
   }
   runner() {
     this._runnerClearInterval = setInterval(
