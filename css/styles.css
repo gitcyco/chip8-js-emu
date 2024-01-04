@@ -24,6 +24,26 @@ body {
   display: flex;
   /* border: 1px solid black; */
 }
+
+#legacy-form {
+  width: 50%;
+}
+
+#legacy {
+  display: flex;
+  align-items: flex-start;
+  /* display: flex; */
+  flex-direction: column;
+}
+
+#keypad {
+  width: 25%;
+}
+
+#keypad-switches {
+  display: flex;
+}
+
 #debug-info {
   /* border: 1px solid black; */
 }

@@ -38,45 +38,44 @@
         <button id="run-rom">Run</button>
         <button id="stop-rom">Stop</button>
         <button id="reset-cpu">Reset Cpu</button>
-        <form action="">
-          <fieldset id="legacy">
-            <label for="legacy8XY">legacy8XY</label>
-            <input type="checkbox" name="legacy8XY" value="" id="legacy8XY">
-            <label for="legacyBNNN">legacyBNNN</label>
-            <input type="checkbox" name="legacyBNNN" value="" checked id="legacyBNNN">
-            <label for="legacyFX1E">legacyFX1E</label>
-            <input type="checkbox" name="legacyFX1E" value="" id="legacyFX1E">
-            <label for="legacyFX55">legacyFX55</label>
-            <input type="checkbox" name="legacyFX55" value="" id="legacyFX55">
-            <label for="legacyFX65">legacyFX65</label>
-            <input type="checkbox" name="legacyFX65" value="" id="legacyFX65">
-          </fieldset>
-        </form>
-        <div id="keypad">
-          <div class="key-row">
-            <button class="key-button">1</button>
-            <button class="key-button">2</button>
-            <button class="key-button">3</button>
-            <button class="key-button">C</button>
+        <div id="keypad-switches">
+          <div id="keypad">
+            <div class="key-row">
+              <button class="key-button">1</button>
+              <button class="key-button">2</button>
+              <button class="key-button">3</button>
+              <button class="key-button">C</button>
+            </div>
+            <div class="key-row">
+              <button class="key-button">4</button>
+              <button class="key-button">5</button>
+              <button class="key-button">6</button>
+              <button class="key-button">D</button>
+            </div>
+            <div class="key-row">
+              <button class="key-button">7</button>
+              <button class="key-button">8</button>
+              <button class="key-button">9</button>
+              <button class="key-button">E</button>
+            </div>
+            <div class="key-row">
+              <button class="key-button">A</button>
+              <button class="key-button">0</button>
+              <button class="key-button">B</button>
+              <button class="key-button">F</button>
+            </div>
           </div>
-          <div class="key-row">
-            <button class="key-button">4</button>
-            <button class="key-button">5</button>
-            <button class="key-button">6</button>
-            <button class="key-button">D</button>
-          </div>
-          <div class="key-row">
-            <button class="key-button">7</button>
-            <button class="key-button">8</button>
-            <button class="key-button">9</button>
-            <button class="key-button">E</button>
-          </div>
-          <div class="key-row">
-            <button class="key-button">A</button>
-            <button class="key-button">0</button>
-            <button class="key-button">B</button>
-            <button class="key-button">F</button>
-          </div>
+          <form action="" id="legacy-form">
+            <fieldset id="legacy">
+              <label for="legacy8XY">legacy8XY<input type="checkbox" name="legacy8XY" value="" id="legacy8XY"></label>
+              <label for="legacyBNNN">legacyBNNN<input type="checkbox" name="legacyBNNN" value="" checked id="legacyBNNN"></label>
+              <label for="legacyFX1E">legacyFX1E<input type="checkbox" name="legacyFX1E" value="" id="legacyFX1E"></label>
+              <label for="legacyFX55">legacyFX55<input type="checkbox" name="legacyFX55" value="" id="legacyFX55"></label>
+              <label for="legacyFX65">legacyFX65<input type="checkbox" name="legacyFX65" value="" id="legacyFX65"></label>
+              
+            </fieldset>
+          </form>
+
         </div>
       </div>
       <div>
