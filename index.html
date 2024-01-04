@@ -31,12 +31,27 @@
         <button id="start-button">Start</button>
         <button id="stop-button">Stop</button>
         <select name="rom-select" id="rom-select">Select...</select>
+        <button id="load-selected-rom">Load ROM</button>
         <input id="input-rom" type="file" accept=".ch8" />
         <button id="load-rom">Load...</button>
         <button id="step-rom">Step</button>
         <button id="run-rom">Run</button>
         <button id="stop-rom">Stop</button>
         <button id="reset-cpu">Reset Cpu</button>
+        <form action="">
+          <fieldset id="legacy">
+            <label for="legacy8XY">legacy8XY</label>
+            <input type="checkbox" name="legacy8XY" value="" id="legacy8XY">
+            <label for="legacyBNNN">legacyBNNN</label>
+            <input type="checkbox" name="legacyBNNN" value="" checked id="legacyBNNN">
+            <label for="legacyFX1E">legacyFX1E</label>
+            <input type="checkbox" name="legacyFX1E" value="" id="legacyFX1E">
+            <label for="legacyFX55">legacyFX55</label>
+            <input type="checkbox" name="legacyFX55" value="" id="legacyFX55">
+            <label for="legacyFX65">legacyFX65</label>
+            <input type="checkbox" name="legacyFX65" value="" id="legacyFX65">
+          </fieldset>
+        </form>
         <div id="keypad">
           <div class="key-row">
             <button class="key-button">1</button>

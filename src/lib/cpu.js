@@ -37,7 +37,7 @@ class CPU {
     this._stClearInterval = null;
     if (this._runnerClearInterval) clearInterval(this._run_runnerClearIntervalnerInterval);
     this._runnerClearInterval = null;
-    this._terminateRunner = false;
+    this._terminateRunner = true;
     this._loadFileFinished = false;
     this.legacy8XY = false;
     this.legacyBNNN = true;
@@ -55,6 +55,18 @@ class CPU {
 
     console.log("FONT:", this.systemFont);
     this.display.reset();
+  }
+  setLegacyModes(settings) {
+    for (let [name, value] of settings) {
+      if (name in this) {
+        this[name] = value;
+      }
+    }
+    // for (let [name] of settings) {
+    //   if (name in this) {
+    //     console.log(`${name}:`, this[name]);
+    //   }
+    // }
   }
   runner() {
     this._runnerClearInterval = setInterval(
@@ -595,7 +607,6 @@ class Stack {
     this.length = this._stackInterface.length - this._stackPointer;
   }
   push(word) {
-    // console.log("pushing:", word);
     if (this.length >= this._maxSize) throw new RangeError("Stack size exceeded!");
     if (word > 0xfff) throw new RangeError(`Attempt to push invalid value to stack :${word}`);
     this._stackInterface[--this._stackPointer] = word;
