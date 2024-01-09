@@ -31,6 +31,11 @@ class CPU {
     this._ram = new ArrayBuffer(this._ramsize);
     // this.wordInterface = new Uint16Array(this._ram);
     this.byteInterface = new Uint8Array(this._ram);
+    this.viewStartIndex = LOAD_ADDRESS_BYTE;
+    this.viewChunkSize = 32;
+    this.viewEndIndex = this.viewStartIndex + this.viewChunkSize;
+    this.currentChunk = new Uint8Array(this._ram.slice(0, 32));
+
     this.stack = new Stack(this._ram, this._stacksize);
     this.registers = new Array(16).fill(0);
     this._delayTimer = 0;
@@ -56,6 +61,10 @@ class CPU {
 
     console.log("FONT:", this.systemFont);
     this.display.reset();
+  }
+  get currentRamChunk() {
+    console.log("RAM Chunk indexes:", this.viewStartIndex, this.viewEndIndex, this._programCounter);
+    return new Uint8Array(this._ram.slice(this.viewStartIndex, this.viewEndIndex));
   }
   // Format of settings:
   // [["parameter1", true], ["parameter2", false],....]
@@ -107,6 +116,9 @@ class CPU {
     const byte1 = this.byteInterface[this._programCounter];
     const byte2 = this.byteInterface[this._programCounter + 1];
     this._programCounter += 2;
+    if (this._programCounter > this.viewStartIndex) {
+      this.viewStartIndex = this._programCounter;
+    }
     const instructionWord = (byte1.toString(16).padStart(2, 0) + byte2.toString(16).padStart(2, 0)).toUpperCase();
     // console.log("instruction:", instructionWord);
     return instructionWord;

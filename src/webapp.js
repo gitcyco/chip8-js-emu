@@ -21,6 +21,10 @@ try {
   const stepButton = document.getElementById("step-rom");
   stepButton.addEventListener("click", (e) => {
     try {
+      const currentData = cpu.currentRamChunk;
+      const currentDataOutput = document.getElementById("current-ram-chunk");
+
+      currentDataOutput.value = convertToHex(currentData);
       cpu.cycle();
     } catch (error) {
       console.error("ERROR:", error);
@@ -101,6 +105,12 @@ try {
   // display.paint();
 } catch (error) {
   console.error("ERROR:", error);
+}
+
+function convertToHex(byteArray) {
+  return Array.from(byteArray, (byte) => {
+    return ("0" + (byte & 0xff).toString(16)).slice(-2);
+  }).join("");
 }
 
 function updateSettings(cpu) {
