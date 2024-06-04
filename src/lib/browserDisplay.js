@@ -4,10 +4,17 @@ const Display = require("./display");
 const COLORS = { ON: "green", OFF: "black" };
 
 class BrowserDisplay extends Display {
-  static MASKS = [0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01];
-  constructor(width, height, xDensity, yDensity) {
+  constructor(width, height, xDensity, yDensity, canvasId) {
     super(width, height, xDensity, yDensity);
+    this.canvasId = canvasId;
+    this.canvas = this.getCanvas();
+    this.ctx = this.canvas.getContext("2d");
+    this.imageData = this.ctx.createImageData(this.canvas.width, this.canvas.height);
     this.reset();
+  }
+  static MASKS = [0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01];
+  getCanvas() {
+    return document.getElementById(this.canvasId);
   }
   reset() {
     const canvas = document.getElementById("monitor");

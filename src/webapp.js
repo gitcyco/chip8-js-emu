@@ -3,7 +3,7 @@ const BrowserDisplay = require("./lib/browserDisplay");
 const BrowserKeyboard = require("./lib/browserKeyboard");
 
 try {
-  const display = new BrowserDisplay(64, 32, 10, 10);
+  const display = new BrowserDisplay(64, 32, 10, 10, "monitor");
   const keyboard = new BrowserKeyboard();
   const cpu = new CPU(display, keyboard, 4096, 48);
   // cpu.initialize();
