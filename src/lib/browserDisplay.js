@@ -38,18 +38,6 @@ class BrowserDisplay extends Display {
     }
     return unset;
   }
-  // setPixelsByte(x, y, byte) {
-  //   x = x % this.width;
-  //   y = y % this.height;
-  //   let unset = false;
-  //   for (let i = 0, mask = 0x80; i < 8 && x + i < this.width; i++, mask >>= 1) {
-  //     if (byte & mask) {
-  //       this.displayPixels[y][x + i] ^= 1;
-  //       if (this.displayPixels[y][x + i] === 0) unset = true;
-  //     }
-  //   }
-  //   return unset;
-  // }
   paint() {
     const canvas = document.getElementById("monitor");
     const ctx = canvas.getContext("2d");
