@@ -17,21 +17,40 @@ class BrowserDisplay extends Display {
     return document.getElementById(this.canvasId);
   }
   reset() {
-    const canvas = document.getElementById("monitor");
-    canvas.width = this.width * this.xDensity;
-    canvas.height = this.height * this.yDensity;
+    this.canvas.width = this.width * this.xDensity;
+    this.canvas.height = this.height * this.yDensity;
     this.displayPixels = new Array(this.height).fill(0).map((e) => new Array(this.width).fill(0));
-    this.paint();
+    this.clearImageData();
   }
-  setPixel(ctx, x, y, bit) {
+  clearImageData() {
+    for (let i = 0; i < this.imageData.data.length; i += 4) {
+      this.imageData.data[i] = 0; // R
+      this.imageData.data[i + 1] = 0; // G
+      this.imageData.data[i + 2] = 0; // B
+      this.imageData.data[i + 3] = 255; // A (fully opaque)
+    }
+    this.ctx.putImageData(this.imageData, 0, 0);
+  }
+  setPixel(x, y, bit) {
     x = x * this.xDensity;
     y = y * this.yDensity;
-    if (bit) {
-      ctx.fillStyle = COLORS.ON;
-    } else {
-      ctx.fillStyle = COLORS.OFF;
+    const baseIndex = (y * this.canvas.width + x) * 4;
+
+    for (let dy = 0; dy < this.yDensity; dy++) {
+      for (let dx = 0; dx < this.xDensity; dx++) {
+        const index = baseIndex + (dy * this.canvas.width + dx) * 4;
+        if (bit) {
+          this.imageData.data[index] = 0; // R
+          this.imageData.data[index + 1] = 255; // G
+          this.imageData.data[index + 2] = 0; // B
+        } else {
+          this.imageData.data[index] = 0; // R
+          this.imageData.data[index + 1] = 0; // G
+          this.imageData.data[index + 2] = 0; // B
+        }
+        // Alpha is always 255 (opaque)
+      }
     }
-    ctx.fillRect(x, y, this.xDensity, this.yDensity);
   }
   setPixelsByte(x, y, byte) {
     x = x % this.width;
@@ -46,13 +65,12 @@ class BrowserDisplay extends Display {
     return unset;
   }
   paint() {
-    const canvas = document.getElementById("monitor");
-    const ctx = canvas.getContext("2d");
     for (let x = 0; x < this.width; x++) {
       for (let y = 0; y < this.height; y++) {
-        this.setPixel(ctx, x, y, this.displayPixels[y][x]);
+        this.setPixel(x, y, this.displayPixels[y][x]);
       }
     }
+    this.ctx.putImageData(this.imageData, 0, 0);
   }
   randomize() {
     for (let x = 0; x < display.width; x++) {
